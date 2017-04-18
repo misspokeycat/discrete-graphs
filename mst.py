@@ -1,68 +1,77 @@
-import numpy as np
-import networkx as nx
-import matplotlib.pyplot as plt
-import timeit
+''' mst.py
+    Minimum spanning tree algorithm implementations.
+'''
 
-#TODO: Determine runtimes for algorithms
+# Imports
+import numpy as np # numpy is a great math/array library
+import networkx as nx # netowrkx is a graph library, very useful for manipulating graphs
+import matplotlib.pyplot as plt # commented out, but used for displaying the graph when finished
+import timeit # used for determining runtime of algorithms
 
+# Kruskels algorithm
+# Perfomrs the kruskels minimum spanning tree algorithm on a numpy matrix or edge list.
+# Returns: edge tuple list
 def kruskels(graph):
     tree = []
     # Sort the edge matrix by cost
     graph = np.array(graph)
     graph = graph[graph[:, 2].argsort()]
     graph = tuple(map(tuple, graph))
-    # print(graph)
     edges = 0
     # For each edge, add to the graph, and determine if it creates a cycle
     for edge in graph:
         # Max number of edges in a tree = number of edges - 1.
         if edges < 999 - 1:
             trcopy = tree.copy()
-            # print(edge)
             trcopy.append(edge)
             if cyclecheck(trcopy) == False:
                 tree = trcopy
                 edges = edges + 1
-                #G = nx.Graph()
-                #G.add_weighted_edges_from(tree)
-                #nx.draw(G)
-                #plt.show()
     return tree
     
 
 # Test function
 def prims(graph):
-    tree = nx.Graph()
-    G = nx.Graph()
+    # We'll be manipulating our graphs using networkx.
+    tree = nx.Graph()  # The tree we'll return
+    G = nx.Graph() # The "source" tree
+    # Convert the numpy array into a tuple list.
+    # This will look like ((0,1,2),(0,2,3)) etc.
+    graph = np.array(graph)
     graph = tuple(map(tuple, graph))
+    # Create our graph from the edge weight list.
     G.add_weighted_edges_from(graph)
-    # Start with the first node in the graph
+    # Add the first vertex (node) in the source graph to our new graph.
     tree.add_node(G.nodes()[0])
-    edges = 0
-    # Find the least cost edge in the graph
-    # Find the minimum weight edge connected to the nodes in the new graph
-    edges = 0
+    # Find the minimum weight edge connected to the nodes in the new graph,
+    # and add it to to the new graph.
+    # Edge counter.  Since the maximum number of edges in a min. spanning tree 
+    # is number of vertexes - 1, we can stop when we reach that number of edges.
+    edges = 0 
     while (edges < len(G.nodes()) - 1):
-        minweight = 999999999
-        minedge = (-1, -1)
-        for node in tree.nodes():
-            for neighbor in G.neighbors(node):
-                if G.get_edge_data(node, neighbor)['weight'] < minweight:
-                    if (neighbor in tree.nodes()) == False:
+        minweight = 999999999 # smallest weight
+        minedge = (-1, -1) # edge (not in graph) with smallest weight
+        for node in tree.nodes():  # iterate over all nodes in new tree
+            for neighbor in G.neighbors(node): # iterate over all edges connected to nodes
+                if G.get_edge_data(node, neighbor)['weight'] < minweight: # We want the node if it's the smallest...
+                    if (neighbor in tree.nodes()) == False: # ...and if we don't have the target node in in our new tree.
                         minweight = G.get_edge_data(node, neighbor)['weight']
                         minedge = (node, neighbor, minweight)
         # Add the edge to the new graph
         tree.add_weighted_edges_from([minedge])
         edges = edges + 1
-    return True
+        # This returns our tree as a list of tuples.
+    return list(tree.edges_iter(data='weight', default=1))
 
 # Tests for a cycle in a graph.  
 def cyclecheck(graph):
+    # Create a networkx graph from an input edge tuple list.
     G = nx.Graph()
     G.add_weighted_edges_from(graph)
+    # Almost cheating, but we can use the nx.find_cycle() function to check for cycles.
+    # If there is no cycle, networkx throws an exception, and we return false.
     try:
         nx.find_cycle(G)
-        # print("Cycle found, discarding")
         return True
     except nx.exception.NetworkXNoCycle:
         return False
@@ -97,7 +106,7 @@ def prune_tree(cur_graph):
     [4, 5, 1]
 ])'''
 
-'''testcase = np.matrix([
+testcase = np.matrix([
     [0, 1, 1],
     [0, 2, 3],
     [0, 4, 4],
@@ -105,7 +114,7 @@ def prune_tree(cur_graph):
     [1, 3, 1],
     [2, 3, 2],
     [4, 5, 1]
-])'''
+])
 
 # testcase = np.loadtxt("gr_dense_1000.txt")
 
@@ -129,20 +138,30 @@ print(list(G.edges_iter(data='weight', default=1)))
 print("Ran in {0} seconds".format(runtime_kruskels))
 
 # Repeat for prims
+testcase = np.matrix([
+    [0, 1, 1],
+    [0, 2, 3],
+    [0, 4, 4],
+    [0, 5, 3],
+    [1, 3, 1],
+    [2, 3, 2],
+    [4, 5, 1]
+])
+
 print("Prims")
 start = timeit.default_timer()
-graph = kruskels(testcase)
+graph = prims(testcase)
 stop = timeit.default_timer()
-runtime_kruskels = stop - start
+runtime_prims = stop - start
 
 # Print all edges in the graph, then sum all their weights and return that as well 
 
 G = nx.Graph()
-G.add_weighted_edges_from(graph)    
+G.add_weighted_edges_from(graph)
 edgesum = G.size(weight='weight')
 print("Total weight is {0}".format(edgesum))
 print(list(G.edges_iter(data='weight', default=1)))
-print("Ran in {0} seconds".format(runtime_kruskels))
+print("Ran in {0} seconds".format(runtime_prims))
 
 #nx.draw(G)
 #plt.show()
