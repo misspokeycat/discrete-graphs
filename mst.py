@@ -16,12 +16,15 @@ def kruskels(graph):
     # Sort the edge matrix by cost
     graph = np.array(graph)
     graph = graph[graph[:, 2].argsort()]
+    degree = np.amax(graph, (0,1))
     graph = tuple(map(tuple, graph))
     edges = 0
+    print(degree)
+    
     # For each edge, add to the graph, and determine if it creates a cycle
     for edge in graph:
         # Max number of edges in a tree = number of edges - 1.
-        if edges < 999 - 1:
+        if edges < degree:
             trcopy = tree.copy()
             trcopy.append(edge)
             if cyclecheck(trcopy) == False:
@@ -106,7 +109,7 @@ def prune_tree(cur_graph):
     [4, 5, 1]
 ])'''
 
-testcase = np.matrix([
+'''testcase = np.matrix([
     [0, 1, 1],
     [0, 2, 3],
     [0, 4, 4],
@@ -114,9 +117,16 @@ testcase = np.matrix([
     [1, 3, 1],
     [2, 3, 2],
     [4, 5, 1]
-])
+])'''
 
-# testcase = np.loadtxt("gr_dense_1000.txt")
+testcase = np.loadtxt("gr_sparse_1000.txt", float)
+
+# baseline
+fh=open("gr_sparse_1000.txt", 'rb')
+G=nx.read_edgelist(fh, nodetype=int, data=(('weight',float),))
+MST = nx.minimum_spanning_tree(G)
+edgesum = MST.size(weight='weight')
+print("Total weight is {0}".format(edgesum))
 
 # Timeit will determine runtime
 
@@ -134,11 +144,11 @@ G.add_weighted_edges_from(graph)
 edgesum = G.size(weight='weight')
 print("Total weight is {0}".format(edgesum))
 
-print(list(G.edges_iter(data='weight', default=1)))
+#print(list(G.edges_iter(data='weight', default=1)))
 print("Ran in {0} seconds".format(runtime_kruskels))
 
 # Repeat for prims
-testcase = np.matrix([
+'''testcase = np.matrix([
     [0, 1, 1],
     [0, 2, 3],
     [0, 4, 4],
@@ -146,7 +156,9 @@ testcase = np.matrix([
     [1, 3, 1],
     [2, 3, 2],
     [4, 5, 1]
-])
+])'''
+
+testcase = np.loadtxt("gr_sparse_1000.txt")
 
 print("Prims")
 start = timeit.default_timer()
@@ -158,9 +170,10 @@ runtime_prims = stop - start
 
 G = nx.Graph()
 G.add_weighted_edges_from(graph)
+cyclecheck(graph)
 edgesum = G.size(weight='weight')
 print("Total weight is {0}".format(edgesum))
-print(list(G.edges_iter(data='weight', default=1)))
+#print(list(G.edges_iter(data='weight', default=1)))
 print("Ran in {0} seconds".format(runtime_prims))
 
 #nx.draw(G)
